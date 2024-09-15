@@ -1,7 +1,0 @@
-Flask
-scikit-learn
-joblib
-numpy
-unittest
-json
-pandas
