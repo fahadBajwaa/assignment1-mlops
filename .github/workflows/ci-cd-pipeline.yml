@@ -1,0 +1,166 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - staging
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8
+          
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Unit Tests
+        run: |
+          python -m unittest discover
+
+  build-dev:
+    name: Build and Test Development Environment
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.ref == 'refs/heads/development'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Docker image for dev
+        run: |
+          docker build -t my-app-dev .
+
+      - name: Test Docker image for dev
+        run: |
+          docker run my-app-dev python -m unittest discover
+
+  build-staging:
+    name: Build and Test Staging Environment
+    runs-on: ubuntu-latest
+    needs: build-dev
+    if: github.ref == 'refs/heads/staging'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Docker image for staging
+        run: |
+          docker build -t my-app-staging .
+
+      - name: Test Docker image for staging
+        run: |
+          docker run my-app-staging python -m unittest discover
+
+  build-prod:
+    name: Build and Test Production Environment
+    runs-on: ubuntu-latest
+    needs: build-staging
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Docker image for production
+        run: |
+          docker build -t my-app-prod .
+
+      - name: Test Docker image for production
+        run: |
+          docker run my-app-prod python -m unittest discover
+
+  deploy-dev:
+    name: Deploy to Vercel (Development)
+    runs-on: ubuntu-latest
+    needs: build-dev
+    if: github.ref == 'refs/heads/development'
+    steps:
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          vercel --prod --env VERCEL_ENV=development --token ${{ secrets.VERCEL_TOKEN }}
+
+  deploy-staging:
+    name: Deploy to Vercel (Staging)
+    runs-on: ubuntu-latest
+    needs: build-staging
+    if: github.ref == 'refs/heads/staging'
+    steps:
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          vercel --prod --env VERCEL_ENV=staging --token ${{ secrets.VERCEL_TOKEN }}
+
+  deploy-prod:
+    name: Deploy to Vercel (Production)
+    runs-on: ubuntu-latest
+    needs: build-prod
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Vercel
+        run: |
+          npm install -g vercel
+          vercel --prod --env VERCEL_ENV=production --token ${{ secrets.VERCEL_TOKEN }}
