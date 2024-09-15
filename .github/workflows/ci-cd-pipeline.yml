@@ -70,13 +70,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Build Docker image for dev
+      - name: Run Unit Tests for dev
         run: |
-          docker build -t my-app-dev .
-
-      - name: Test Docker image for dev
-        run: |
-          docker run my-app-dev python -m unittest discover
+          python -m unittest discover
 
   build-staging:
     name: Build and Test Staging Environment
@@ -97,13 +93,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Build Docker image for staging
+      - name: Run Unit Tests for staging
         run: |
-          docker build -t my-app-staging .
-
-      - name: Test Docker image for staging
-        run: |
-          docker run my-app-staging python -m unittest discover
+          python -m unittest discover
 
   build-prod:
     name: Build and Test Production Environment
@@ -124,13 +116,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Build Docker image for production
+      - name: Run Unit Tests for production
         run: |
-          docker build -t my-app-prod .
-
-      - name: Test Docker image for production
-        run: |
-          docker run my-app-prod python -m unittest discover
+          python -m unittest discover
 
   deploy-dev:
     name: Deploy to Vercel (Development)
