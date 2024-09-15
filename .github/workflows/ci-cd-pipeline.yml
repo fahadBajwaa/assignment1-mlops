@@ -106,28 +106,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-  deploy-dev:
-    name: Deploy to Vercel (Development)
-    runs-on: ubuntu-latest
-    needs: build-dev
-    if: github.ref == 'refs/heads/feature-frontend'
-    steps:
-      - name: Deploy to Vercel
-        run: |
-          npm install -g vercel
-          vercel --prod --env VERCEL_ENV=development --token ${{ secrets.VERCEL_TOKEN }}
-
-  deploy-staging:
-    name: Deploy to Vercel (Staging)
-    runs-on: ubuntu-latest
-    needs: build-staging
-    if: github.ref == 'refs/heads/feature-api'
-    steps:
-      - name: Deploy to Vercel
-        run: |
-          npm install -g vercel
-          vercel --prod --env VERCEL_ENV=staging --token ${{ secrets.VERCEL_TOKEN }}
-
   deploy-prod:
     name: Deploy to Vercel (Production)
     runs-on: ubuntu-latest
