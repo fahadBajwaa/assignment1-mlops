@@ -52,11 +52,10 @@ jobs:
         run: |
           python -m unittest discover
 
-  build-frontend:
-    name: Build and Test Frontend Environment
+  build-dev:
+    name: Build and Test Development Environment
     runs-on: ubuntu-latest
     needs: [lint, test]
-    if: github.ref == 'refs/heads/feature-frontend'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -71,11 +70,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-  build-api:
-    name: Build and Test API Environment
+  build-staging:
+    name: Build and Test Staging Environment
     runs-on: ubuntu-latest
-    needs: [lint, test]
-    if: github.ref == 'refs/heads/feature-api'
+    needs: build-dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -90,11 +88,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-  build-model:
-    name: Build and Test Model Training Environment
+  build-prod:
+    name: Build and Test Production Environment
     runs-on: ubuntu-latest
-    needs: [lint, test]
-    if: github.ref == 'refs/heads/feature-model-training'
+    needs: build-staging
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -112,7 +109,7 @@ jobs:
   deploy-dev:
     name: Deploy to Vercel (Development)
     runs-on: ubuntu-latest
-    needs: build-frontend
+    needs: build-dev
     if: github.ref == 'refs/heads/feature-frontend'
     steps:
       - name: Deploy to Vercel
@@ -120,22 +117,11 @@ jobs:
           npm install -g vercel
           vercel --prod --env VERCEL_ENV=development --token ${{ secrets.VERCEL_TOKEN }}
 
-  deploy-api:
-    name: Deploy to Vercel (API)
+  deploy-staging:
+    name: Deploy to Vercel (Staging)
     runs-on: ubuntu-latest
-    needs: build-api
+    needs: build-staging
     if: github.ref == 'refs/heads/feature-api'
-    steps:
-      - name: Deploy to Vercel
-        run: |
-          npm install -g vercel
-          vercel --prod --env VERCEL_ENV=staging --token ${{ secrets.VERCEL_TOKEN }}
-
-  deploy-model:
-    name: Deploy to Vercel (Model Training)
-    runs-on: ubuntu-latest
-    needs: build-model
-    if: github.ref == 'refs/heads/feature-model-training'
     steps:
       - name: Deploy to Vercel
         run: |
@@ -145,7 +131,7 @@ jobs:
   deploy-prod:
     name: Deploy to Vercel (Production)
     runs-on: ubuntu-latest
-    needs: [build-frontend, build-api, build-model]
+    needs: build-prod
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to Vercel
