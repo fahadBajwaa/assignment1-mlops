@@ -2,5 +2,4 @@ Flask
 scikit-learn
 joblib
 numpy
-json
 pandas
