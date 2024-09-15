@@ -56,7 +56,7 @@ jobs:
     name: Build and Test Development Environment
     runs-on: ubuntu-latest
     needs: [lint, test]
-    if: github.ref == 'refs/heads/feature-api'
+    if: contains(github.ref, 'feature-api')
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -79,7 +79,7 @@ jobs:
     name: Build and Test Staging Environment
     runs-on: ubuntu-latest
     needs: build-dev
-    if: github.ref == 'refs/heads/feature-frontend'
+    if: contains(github.ref, 'feature-frontend')
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -102,7 +102,7 @@ jobs:
     name: Build and Test Production Environment
     runs-on: ubuntu-latest
     needs: build-staging
-    if: github.ref == 'refs/heads/main'
+    if: contains(github.ref, 'main')
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -125,7 +125,7 @@ jobs:
     name: Deploy to Vercel (Development)
     runs-on: ubuntu-latest
     needs: build-dev
-    if: github.ref == 'refs/heads/feature-api'
+    if: contains(github.ref, 'feature-api')
     steps:
       - name: Deploy to Vercel
         run: |
@@ -136,7 +136,7 @@ jobs:
     name: Deploy to Vercel (Staging)
     runs-on: ubuntu-latest
     needs: build-staging
-    if: github.ref == 'refs/heads/feature-frontend'
+    if: contains(github.ref, 'feature-frontend')
     steps:
       - name: Deploy to Vercel
         run: |
@@ -147,7 +147,7 @@ jobs:
     name: Deploy to Vercel (Production)
     runs-on: ubuntu-latest
     needs: build-prod
-    if: github.ref == 'refs/heads/main'
+    if: contains(github.ref, 'main')
     steps:
       - name: Deploy to Vercel
         run: |
